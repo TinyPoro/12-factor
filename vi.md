@@ -69,4 +69,72 @@ Lưu ý rằng định nghĩa `cấu hình` không bao gồm các cấu hình n�
 
 Trong các ứng dụng 12-chuẩn, env vars là các điều khiển chi tiết, mỗi chúng trực giao đầy đủ với các env vars khác. Chúng không vào giờ được nhóm lại với nhau như làà "các môi trường", nhưng thay vào đó chúng quản lý độc lập cho từng triển khai. Đây là 1 mô hình nâng cao sự mượt mà, ứng dụng sự mở rộng 1 cách tự nhiên đến nhiều triển khai hơn trong suốt vòng đời của nó.
 
+#### IV. Các dịch vụ nền
+###### Coi các dịch vụ nền như các nguồn đi kèm
+1 dịch vụ nền là bất cứ dịch vụ nào mà ứng dụng sử dụng trong suốt kết nối như là 1 phần của quá trình điều hành thông thường của nó. Các ví dụ bao gồm các kho dữ liệu ( như MySQL hoặc CouchDB), các hệ thống nhắn tin/ xếp hàng ( như RabbitMQ hoặc Beanstalkd), các dịch vụ SMTP cho gửi  email(như Postfix) và các hệ thống caching ( như Memcaches).
 
+Các dịch vụ nền  như cơ sở dữ liệu thông thường được quản lý bởi cùng các quản trị hệ thống như là các triển khai trong quá trình chạy của ứng dụng. Ngoài những dịch vụ được quản lý cục bộ này, ứng dụng còn có thể có các dịch vụ được cung cấp và quản lý bởi các bên thứ ba. Ví dụ bao gồm các dịch vụ SMTP (như Postmark), các dịch vụ thu thập số liệu ( như là New Relic hay Loggly), các dịch vụ sở hữu nhị phân( nhưu là Amazon S3), và thậm chí các dịch vụ sử dụng APO-truy-cập ( như là Twitter, Google Maps, hay Last.fm).
+
+Code cho ứng dụng theo 12-chuẩn không phân biệt các dịch vụ cục bộ hay là bên thứ ba. Đối với ứng dụng, cả 2 đều là các nguồn đi kèm, được truy cập thông qua 1 URL hay các định vị/ thông tin xác thực khác được lưu trữ trong cấu hình. 1 triển khai của ứng dụng theo 12-chuẩn nên có thể hoán đổi giữa cơ sở dữ liệu MySQL cục bộ với 1 cái được quản lý bởi 1 bên thứ ba (như là Amazon RDS) mà không cần bất kỳ thay đổi nào trong code của ứng dụng. Tương tự, 1 máy chủ SMTP cục bộ có thể được tráo đổi với 1 dịch vụ SMTP bên thứ ba (như Postmark) mà không phải thay đổi code. Trong cả 2 trường hợp, chỉ có các tài nguyên được xử lý trong cấu hình cần được thay đổi.
+
+Mỗi dịch vụ nền riêng biệt là 1 tài nguyên. Ví dụ, 1 cơ sở dữ liệu MySQL là 1 tài nguyên, 2 cơ sở dữ liệu MySQL ( sử dụng  song song tại tầng ứng dụng) được coi là 2 tài nguyên riêng biệt. Ứng dụng theo 12-chuẩn coi các cơ sở dữ liệu này như là các tài nguyên đi kèm, chỉ định kết nối lỏng lẻo của chúng với triển khai mà chúng đi kèm.
+
+Các tài nguyên có thể được gắn kèm cũng như được tách rời khỏi các triển khai 1 cách tùy ý. Ví dụ, nếu cơ sở dữ liệu của ứng dụng  hoạt động lỗi do các vấn đề phần cứng, người quản trị ứng dụng có thể chuyển sang 1 máy chủ cơ sở dữ liệu mới được khôi phục từ lần backup gần nhất. Cơ sở dữ liệu production hiện tại có thể được gỡ bỏ, và cơ sở dữ liệu mới sẽ được thêm vào - tất cả đều không cần bất kỳ thay đổi code nào.
+
+#### V. Xây dựng, xuất bản và chạy
+###### Tách rời rõ ràng giai đoạn xây dựng và chạy
+1 codebase được chuyển thành 1 triển khai(không-phải-phát-triển) qua ba giai đoạn:
+
+- Giai đoạn xây dựng là 1 quá trình chuyển đổi mà chuyển 1 code repo thành 1 gói thực thi, được biết như là 1 kiến trúc. Sử dụng 1 phiên bản code tại 1 commit cụ thể qua quá trình triển khai, bước xây dựng sẽ lấy các phụ thuộc vendors và biên dịch các file nhị phân và asset.
+- Giai đoạn xuất bản lấy kiến trúc đượct ạo từ giai đoạn xây dựng và ghép chúng với cấu hình triển khai hiện tại. Kết quả xuất bảo sẽ bảo gồm cả kiến trúc và cấu hình và sẵn sáng để thực thi ngay lập tức trong môi trường thực thi.
+- Giai đoạn chạy(cũng được biết là "thời gian chạy") chạy ứng dụng trong môi trường thực thi, bằng cách xuất 1 tập các tiến trình của ứng dụng với 1 xuất bản được chọn.
+
+Ứng dụng theo 12 chuẩn sử dụng tách biệt rõ ràng giữa các giai đoạn xây dựng, xuất bản và chạy. Ví dụ, không thể tạo các thay đổi đến code trong thời gian chạy, vì không có cách nào để truyền những thay đổi này về giai đoạn xây dựng cả.
+
+Các công cụ triển khai thường sẽ chấp nhận các công cụ quản lý xuất bản, đáng chủ ý nhất là có thể rool back về xuất bản trước đó. í dụ công cụ triển khai Capistranoapistrano lưu các xuất bản trong 1 thư mục con gọi là `releases`, nơi mà xuất bản hiện tại là 1 liên kết tượng trưng đến thư mục xuất bản hiện tại. Lệnh `rollback` của nó khiến nó rất dễ dàng để rollback lại xuất bản trước 1 cách nhanh chóng.
+
+Mỗi xuất bản luônuôn nên có 1 ID xuất bản riêng, như là mốc thời gian xuất bản ( như là `2011-04-06-20:32:17`) hay 1 số tự tăng (như là `v100`). Các xuất bản kiểu như chỉ có thể thêm vào và 1 xuất bản không thể chỉnh sửa 1 khi nó được tạo ra. Bất kỳ thay đổi nào đều phải tạo 1 xuất bản mới. 
+
+Các kiến trúc sẽ được khởi tạo bởi người phát triển ứng dụng khi mà code mới được triển khai. Mặt khác, thực thi thời gian chạy có thể tự động xảy ra trong  số trường hợp như là server khởi động lại, hoặc 1 tiến trình crash được khởi động lại bởi quản lý tiến trình. Vì thế, giai đoạn chạy nên được giữ càng ít phần chuyển tiếp càng tốt, vì các vấn đề ngăn ứng dụng chạy có thể khiến nó hỏng trong giữa đêm khi mà không có người lập trình nào làm việc cả. Quá trình xây dựng có thể phức tạp hơn, vì các lỗi luôn luôn tồn tại xung quanh 1 nhà phát triển đang thực hiện triển khai.
+
+#### VI. Các tiến trình
+###### Thực thi ứng dụng như là 1 hay nhiều  các tiến trình không trạng thái
+Ứng dụng được thực thi trong môi trường thực thi như là 1 hay nhiều hơn các tiến trính/
+
+Trong trường hợp đơn giản nhất, code là 1 kịch bản độc lập, môi trường thực thi là laptop cục bộ của người phát triển với ngôn ngữ thời gian chạy đã được cài đặt, và tiến trình được thực hiện thông qua dòng lệnh ( ví dụ, `python my_script.py`). Mặt khác, 1 triển khai production của 1 ứng dụng tinh vi có thể sử nhiều nhiều loại tiến trình, khởi tạo từ 0 hoặc nhiều hơn các tiến trình chạy.
+
+Các tiến trình theo 12-chuẩn là không trạng thái và không chia sẻ bất cứ gìì cả. Bất kỳ dữ liệu nào cần dùng phải được lưu trữữ trong 1 dịch vụ nền có trạng thái, thường là 1 cơ sở dữ liệu.
+
+Bộ nhớ hoặc filesystem của tiến trình có thể được sử dụng như là 1 tóm tắt,  1 bộ nhớ đệm đơn-chiều. Ví dụ, tải 1 file lớn, nghiên cứu nó, và lưu các kết quả của sự nghiên cứu trong cơ sởở dữ liệu. Ứng dụng theo 12-chuẩn không bao giờ  giả định bất cứ thứ gì được cache trong bộ nhớ hay trên đĩa sẽ khả dụng trong 1 yêu cầu hay công việc trong tương lai - với nhiều tiến trình mỗi loại đang chạy, cơ hội cho 1 yêu cầu trong tương lai được phục vụ bởi 1 tiến trình khác là cao. Thậm chí ngay cả khi đang chạy duy nhất 1 tiến trình, 1 khởi động lạiại ( bắt nguồn từ triển khai code, thay đổi cấu hình hay môi trường thực thi  chuyển tiến trình sang 1 ví trí vật lí khác) thường xóa sạch tất cả trạng thái cục bộ ( bộ nhớ và filesystem).
+
+Các đóng gói asset như django-asetpackager sử dụng filesystem như là bộ nhớ đệm cho các asset được biên dịch. 1 ứng dụng theo 12-chuẩn thích thực hiện việc biên dịch này trong suốt giai đoạn xây dựng. Các đóng gói asset như Jammit và asset pipeline Rails có thể được cấu hình thành các asset package trong giai đoạn xây dựng.
+
+1 vài hệ thống web phụ thuộc vào các “sticky sessions” - nó là , các dữ liệu phiên của người dùng được lưu đệm trong bộ nhớ của các tiến trình của ứng dụng và đợi những yêu cầu trong tương lai từ cùng 1 người sẽ được điều hướng tới cùng 1 tiến trình. Các tiến trình  dính là những vi phạm của 12-chuẩn và không nên bao giờ được sử dụng hay phụ thuộc vào nó. Các dữ liệu trang thái phiên là 1 thay thế tốt cho các kho dữ liệu yêu cầu thời gian hết hạn, như là Memcaches hay Redis.
+
+#### VII. Ràng buộc cổng
+###### Xuất các dịch vụ bằng ràng buộc cổng
+Các ứng dụng web đôi khi được thực thi bên trong 1 nơi chứa webserver. Ví dụ, các ứng dụng php có thể chạy như là 1 module bên trong Apache HTTPD, hay các ứng dụng Java có thể chạy bên trong Tomcat.
+
+Ứng theo theo 12-chuẩn hoàn toàn độc lập và không phụ thuộc vào các đơn ảnh thời gian chạy của 1 webserver vào môi trường thực thi để tạo 1 dịch vụ web-facing. Ứng dụng web xuất HTTP như 1 dịch vụ bằng cách ràng buộc với 1 cổng, và nghe các yêu cầu tới từ cổng đó.
+
+Trong môi trường phát triển cục bộ, cácác nhà phát triển vào 1 URL dịch vụ như `http://localhost:5000/` để truy cập vào dịch vụ xuất bởi ứng dụng của họ.Trong triển khai, tầng điều hướng xử lý các yêu cầu điều hướng từ 1 tên miền public-facing đến các tiến trình web port-bound.
+
+Điều này thường được triển khai bằng các sử dụng các khai báo phụ thuộc để thêm 1 thư viện webserver vào ứng dụng, như là Tornado cho Python, Thin cho Ruby, hay Jetty cho Java và các ngôn ngữ chuẩn JVM khác. Điều này xảy ra hoàn toàn trong không gian người dùng, đó là, bên trong code của ứng dụng. Các giao ước với môi trương thực thi được ràng buộc tới 1 cổng để phục vụ các yêu cầu.
+
+HTTP không phải dịch vụ duy nhất có thể được xuất bằng ràng buộc cổng. Gần đây thì bất kỳ loại phần mềm máy chủ nào đều có thể chạy thông qua 1 tiến trình ràng buộc với 1 cổng và đợi các yêu cầu đến. Các ví dụ bao gồm ejabberd ( gọi XMPP), và Redis (gọi giao thức Redis).
+
+Cũng lưu ý rằng các tiếp cận ràng-buộc-cổng có nghĩa là 1 ứng dụng có thể trở thành 1 dịch vụ nền cho 1 ứng dụng khác, bằng cách cung cấp URL đến ứng dụng nền như 1 xử lý tài nguyên trong cấu hình cho ứng dụng sử dụng.
+
+#### VIII. Xử lý đồng thời
+###### Tăng khả năng thông qua mô hình tiến trình
+Bất kỳ chương trình máy tính nào, 1 khi chạy, được đại diện bởi 1 hoặc nhiều hơn các tiến trình. Các ứng dụng web có rất nhiều hình thức thực thi tiến tình. Ví dụ, các tiến trình PHP chạy như các tiến trình con của Apache, bắt đầu  theo yêu cầu như nhu cầuầu của lượng request. Các tiến trình Java lại cóó 1 cách tiếp cận khác, với  JVM cung cấp 1 uberprocess lớn lưu trữ khối tài nguyên hệ thống (CPU và bộ nhớ) lúc khởi động, với xử lý đồng thời được quản lý nội bộ thông qua các luồng. Trong cả 2 trường hợp, các tiến trình chạy chỉ hiển thị tối thiểu đến các người lập trình của ứng dụng.
+
+
+In the twelve-factor app, processes are a first class citizen. Processes in the twelve-factor app take strong cues from the unix process model for running service daemons. Using this model, the developer can architect their app to handle diverse workloads by assigning each type of work to a process type. For example, HTTP requests may be handled by a web process, and long-running background tasks handled by a worker process.
+Trong ứng dụng 12-chuẩn, các tiến trình là tập các lớp đầu tiên. Các tiến trình trong ứng dụng theo 12 chuẩn 
+
+This does not exclude individual processes from handling their own internal multiplexing, via threads inside the runtime VM, or the async/evented model found in tools such as EventMachine, Twisted, or Node.js. But an individual VM can only grow so large (vertical scale), so the application must also be able to span multiple processes running on multiple physical machines.
+
+The process model truly shines when it comes time to scale out. The share-nothing, horizontally partitionable nature of twelve-factor app processes means that adding more concurrency is a simple and reliable operation. The array of process types and number of processes of each type is known as the process formation.
+
+Twelve-factor app processes should never daemonize or write PID files. Instead, rely on the operating system’s process manager (such as systemd, a distributed process manager on a cloud platform, or a tool like Foreman in development) to manage output streams, respond to crashed processes, and handle user-initiated restarts and shutdowns.
