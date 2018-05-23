@@ -5,7 +5,7 @@ Trong thời đại ngày nay, phần mềm thường được chuyển thành c
 - Sử dụng các định dạng được khai báo để cài đặt tự động, tối thiểu thời gian và chi phí cho các người phát triển mới tham gia vào dự án:
 - Có các giao ước rõ ràng với hệ điều hành ngầm, cho phép tính di dộng tối đã giữa các môi trường thực thi.
 - Trở nên phù hợp để phát triển trên các nền tảng đám mây hiện đại, giảm bớt yêu cầu từ server và các hệ thống quản trị.
-- Tối thiểu sự khác nhau giữa development và production, cho phép phát triển liên tục 1 cách linh động nhất.
+- Tối thiểu sự khác nhau giữa development và production, cho phép phát triển liên tục 1 cách nhnhất.
 - Và có thể mwor rộng và không có những thay đổi đáng kể nào với công cụ, kiến trúc, hay thói quen phát triển.
 
 
