@@ -148,3 +148,45 @@ Các tiến trình tắt 1 cách thanh nhã khi chúng nhận được 1 tín hi
 Với 1 tiến trình worker, tắt 1 cách thanh ngã đạt được bằng cách đưa công việc hiện tại về hàng chờ việc. Ví dụ, trên RabbitMQ worker có thể gửi 1 `NACK`; trên Beanstalkd, công việc được đưa về hàng chờ tự động mỗi khi worker ngắt kết nối. Các hệ thống lock-based như Delayed Job cần phải chắc triển khai khóa của chúng trên các bản ghi công việc. Ngụ ý trong mô hình ngày là tất cả các công việc là lặp lại, thứ thường có thể đạt được bằng cách gói các kết quả trong 1 giao dịch, hoặc khiến hoạt động không thay đổi giá trị.
 
 Các tiến trình cũng nên mạnh mẽ trước những biến cố bất thình lình, trong trường hợp bị hỏng ở phần cứng phía dưới. Trong khi đây là điều thường ít xảy ra hơn  so với tắt 1 cách thanh nhã với `SIGTERM`, nó vẫn có thể xảy ra. 1 lời khuyên là sử dụng  nền hàng chờ chắc chắn, như là Beanstalkd, nó sẽ đưa các công việc về hàng chờ khi các máy khách ngắt kết nối hoặc quá hạn. Cung như vậy, 1 ứng dụng theo 12 chuẩn được thiết kế để xử lý những kết thúc không ngờ, không thanh nhã. Các thiết kế chỉ-hỏng đưa khái niệm này đến kết luận logic của nó.
+
+
+#### X. Dev/prod parity (bình đẳng dev/prod)
+###### Giữ cho giai đoạn development, staging, và production giống nhau nhất có thể
+
+Trước đây, có 1 khoảng trống đáng kể giữa development ( 1 người phát triển tạo các chỉnh sửa trực tiếp tới các triển khai cục bộ của ứng dụng) vàà production(1 triển khai đang chạy của ứng dụng tiếp cận bởi các người dùng cuối). Những khoảng trống này biểu lộ trong 3 điểm:
+
+- Khoảng trống thời gian: 1 người phát triển có thể làm việc trên code mất vài ngàyày, vài tuần, hay thâm chí vài tháng trước khi đẩy lên production.
+- Khoảng cách về nhân sự: Các người phát triển viết code, các kĩ sư óp triển khai nó.
+- Khoảng cách về công cụ: các người phát triển có thể sử dụng 1 stack như Ngĩn, SQLite, và OS X, trong khi triển khai production sử dụng Apache, MySQL, và Linuxx.
+
+Ứng dụng theo 12 chuẩn được thiết kế để triển khai liên tục bằng cách giữ các khoảng cách giữa development và production nhỏ. Nhìn vào 3 cái khoảng trống được mô tả bên trên:
+
+- Làm khoảng cách thời gian nhỏ: 1 người phát triển có thểể viết code và triển khai nó chỉ vài giờ hay thậm chí vài phút sau đó.
+- Làm khoảng cách nhân sự nhỏ lại: những người phát triển viết code liên quan chặt chẽ với việc triển khai nó và theo dõi các hoạt động của nó trong production.
+- Khiến khoảng cách các công cụ nhỏ lại: làm development và production giống nhau nhất có thể.
+
+Tổng kết trong bảng dưới đây:
+
+|  |  Ứng dụng cổ điển |  Ứng dụng theo 12 chuẩn |
+| ------------- |:-------------:| -----:|
+| Thời gian giữa các triển khai |  Hàng tuần |  Hàng giờ |  
+| Tác giả code và người triển khai code |  Những người khác nhau |  Cùng người |  
+| Các môi trường Dev và production |  Khác ngau |  Giống nhau hết cỡ có thể | 
+
+[Các dịch vụ sao lưu][3], như là cơ sở dữ liệu của ứng dụng, hệ thống hàng đợi, hoặc bộ nhớ đệm, là thứ mà bình đằng dev/prod rất quan trọng.
+such as the app's database, queueing system, or cache, is one area where dev/prod parity is important. Many languages offer libraries which simplify access to the backing service, including _adapters_ to different types of services. Some examples are in the table below.
+
+
+| Loại |  Ngôn ngữ |  Thư viện |  Adapters |  
+| ------------- |:-------------:| -----:|-----:|
+| Database |  Ruby/Rails |  ActiveRecord |  MySQL, PostgreSQL, SQLite |  
+| Queue |  Python/Django |  Celery |  RabbitMQ, Beanstalkd, Redis |  
+| Cache |  Ruby/Rails |  ActiveSupport::Cache |  Memory, filesystem, Memcached | 
+
+Developers sometimes find great appeal in using a lightweight backing service in their local environments, while a more serious and robust backing service will be used in production. For example, using SQLite locally and PostgreSQL in production; or local process memory for caching in development and Memcached in production.
+
+**The twelve-factor developer resists the urge to use different backing services between development and production**, even when adapters theoretically abstract away any differences in backing services. Differences between backing services mean that tiny incompatibilities crop up, causing code that worked and passed tests in development or staging to fail in production. These types of errors create friction that disincentivizes continuous deployment. The cost of this friction and the subsequent dampening of continuous deployment is extremely high when considered in aggregate over the lifetime of an application.
+
+Lightweight local services are less compelling than they once were. Modern backing services such as Memcached, PostgreSQL, and RabbitMQ are not difficult to install and run thanks to modern packaging systems, such as [Homebrew][4] and [apt-get][5]. Alternatively, declarative provisioning tools such as [Chef][6] and [Puppet][7] combined with light-weight virtual environments such as [Docker][8] and [Vagrant][9] allow developers to run local environments which closely approximate production environments. The cost of installing and using these systems is low compared to the benefit of dev/prod parity and continuous deployment.
+
+Adapters to different backing services are still useful, because they make porting to new backing services relatively painless. But all deploys of the app (developer environments, staging, production) should be using the same type and version of each of the backing services.
