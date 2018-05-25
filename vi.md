@@ -190,3 +190,21 @@ Developers sometimes find great appeal in using a lightweight backing service in
 Lightweight local services are less compelling than they once were. Modern backing services such as Memcached, PostgreSQL, and RabbitMQ are not difficult to install and run thanks to modern packaging systems, such as [Homebrew][4] and [apt-get][5]. Alternatively, declarative provisioning tools such as [Chef][6] and [Puppet][7] combined with light-weight virtual environments such as [Docker][8] and [Vagrant][9] allow developers to run local environments which closely approximate production environments. The cost of installing and using these systems is low compared to the benefit of dev/prod parity and continuous deployment.
 
 Adapters to different backing services are still useful, because they make porting to new backing services relatively painless. But all deploys of the app (developer environments, staging, production) should be using the same type and version of each of the backing services.
+
+#### XI. Logs
+###### Coi các logs như các luồng sự kiện
+Các log sẽ cho ta thấy được hoạt động của các ứng dụng đang chạy. Trong các môi trường hướng máy chủ chúng thường được viết vào 1 file trên đĩa (1 "logfile"), nhưng đây không phải định dạng đầu ra duy nhất.
+
+Các log là luồng sự kiện tổng hợp, có thứ tự thời gian được thu thập từ các luồng đầu ra của tất cả các tiến trình đang chạy và các dịch vụ sao lưu. Log ở dạng thô của chúng thường là định dạng văn bản với 1 sự kiện mỗi dòng ( mặc dù backtraces từ các ngoại lệ có thể chiếm nhiều dòng). Các log không có bắt đầu và kết thúc cố định, nhưng luồng thì liên tiếp cứ khi nào mà ứng dụng đang tiến hành.
+
+1 ứng dụng theo 12 chuẩn không bao giờ quan tâm đến điều hướng hay lưu trữ các luồng đầu ra của chúng. Nó không nên thử viết vào hay quản lý các file log. Thay vào đó, mỗi tiến trình chạy sẽ tự viết các luồng sự kiện, unbuffered của chúng vào sdtout. Trong quá trình development cục bộ, các nhà phát triển sẽ thấy luồng này ở trong màn hình terminal của họ để quan sát hoạt động của ứng dụng. 
+
+Trong các triển khai staging hay production, mỗi luồng tiến trình sẽ được kiểm soát bởi môi trường thực thi, đối chiếu qua lại với tất cả các luồng khác của ứng dụng, và điều hướng đến 1 hoặc chiều hơn các đích đến cuối cùng để viewing và lưu trữ dài hạn. Đích đến lưu trữ này không phải để hiển thị hay cấu hình bởi ứng dụng, và thay vào đó hoàn toàn được quản lý bởi môi trường thực thi. Bộ điều hướng log mã nguồn mở ( như Logplex và Fluentd) phù hợp với mục đích này.
+
+The event stream for an app can be routed to a file, or watched via realtime tail in a terminal. Most significantly, the stream can be sent to a log indexing and analysis system such as Splunk, or a general-purpose data warehousing system such as Hadoop/Hive. These systems allow for great power and flexibility for introspecting an app’s behavior over time, including:
+Các luồng sự kiện cho 1 ứng dụng có thể được điều hướng đến 1 file, hay được theo dõi thông qua lệnh tail thời gian thực trong 1 terminal. Quan trọng nhất, luồng có thể được gửi đến 1 chỉ mục log và hệ thống phân tích như Splunk.
+
+- Finding specific events in the past.
+- Large-scale graphing of trends (such as requests per minute).
+- Active alerting according to user-defined heuristics (such as an alert when the quantity of errors per minute exceeds a certain threshold).
+Turkish (tr) | Brazilian Portugue
