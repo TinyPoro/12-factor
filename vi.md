@@ -173,8 +173,7 @@ Tổng kết trong bảng dưới đây:
 | Tác giả code và người triển khai code |  Những người khác nhau |  Cùng người |  
 | Các môi trường Dev và production |  Khác ngau |  Giống nhau hết cỡ có thể | 
 
-[Các dịch vụ sao lưu][3], như là cơ sở dữ liệu của ứng dụng, hệ thống hàng đợi, hoặc bộ nhớ đệm, là thứ mà bình đằng dev/prod rất quan trọng.
-such as the app's database, queueing system, or cache, is one area where dev/prod parity is important. Many languages offer libraries which simplify access to the backing service, including _adapters_ to different types of services. Some examples are in the table below.
+[Các dịch vụ sao lưu][3], như là cơ sở dữ liệu của ứng dụng, hệ thống hàng đợi, hoặc bộ nhớ đệm, là thứ mà bình đằng dev/prod rất quan trọng. Nhiều ngôn ngữ cho phép các thư viện đơn giản hóa truy cập đến các dịch vụ sao lưu, bao gồm _adapters_ đến các loại khác nhau của dịch vụ. 1 số ví dụ được cho trong bảng dưới đây.
 
 
 | Loại |  Ngôn ngữ |  Thư viện |  Adapters |  
@@ -183,13 +182,13 @@ such as the app's database, queueing system, or cache, is one area where dev/pro
 | Queue |  Python/Django |  Celery |  RabbitMQ, Beanstalkd, Redis |  
 | Cache |  Ruby/Rails |  ActiveSupport::Cache |  Memory, filesystem, Memcached | 
 
-Developers sometimes find great appeal in using a lightweight backing service in their local environments, while a more serious and robust backing service will be used in production. For example, using SQLite locally and PostgreSQL in production; or local process memory for caching in development and Memcached in production.
+Các nhà phát triển đôi khi kêu gọi mạnh mẽ trong việc xử dụng các dịch vụ sao lưu nhẹ trong các môi trường cục bộ của họ, trong khi các dịch vụ sao lưu mạnh mẽ hơn sẽ đượcđược sử dụng trong production. Ví dụ, sử dụng SQLite cục bộ và PostgreSQL trong production; hay bộ nhớ tiến trình cục bộ cho việc caching trong development và Memcaches trong production.
 
-**The twelve-factor developer resists the urge to use different backing services between development and production**, even when adapters theoretically abstract away any differences in backing services. Differences between backing services mean that tiny incompatibilities crop up, causing code that worked and passed tests in development or staging to fail in production. These types of errors create friction that disincentivizes continuous deployment. The cost of this friction and the subsequent dampening of continuous deployment is extremely high when considered in aggregate over the lifetime of an application.
+**Nhà phát triển theo 12-chuẩn luôn chối bỏ những cám dỗ sử dụng các dịch vụ sao lưu khác nhau giữa development và production**, thậm chí khi các adaper về mặt lý thuyết tách biệt với bất kỳ sự khác nhau nào trong các dịch vụ sao lưu. Các sự khác nhau giữa các dịch vụ sao lưu có nghĩa là có 1 sự không tương thích xuất hiện, khiến code chạy là qua các bài test trong development hoặc staging có thể thất bại ở production. Những loại lỗi này gây ra những khó khăn làm cản trở triển khai liên tục. Ảnh hưởng của khó khăn này và  những cản trở  tiếp theo đếntriển khai liên tục là thực sự lớn khi xem xét tổng hợp trên vòng đời của 1 ứng dụng.
 
-Lightweight local services are less compelling than they once were. Modern backing services such as Memcached, PostgreSQL, and RabbitMQ are not difficult to install and run thanks to modern packaging systems, such as [Homebrew][4] and [apt-get][5]. Alternatively, declarative provisioning tools such as [Chef][6] and [Puppet][7] combined with light-weight virtual environments such as [Docker][8] and [Vagrant][9] allow developers to run local environments which closely approximate production environments. The cost of installing and using these systems is low compared to the benefit of dev/prod parity and continuous deployment.
+Các dịch vụ cục bộ nhẹ ngày này kém thuyết phục hơn trước. Các dịch vụ sao lưu hiện đại như Memcaches, PostgreSQL, và RabbitMQ không khó để cài đặt và chạy nhờ vào các hệ thống quản lý gọi hiện đại, như là [Homebrew][4] và [apt-get][5]. Ngoài ra, các công cụ cung cấp khai báo như [Chef][6] và [Puppet][7] đã được kết hợp với các môi trường máy ảo nhẹ như[Docker][8] và [Vagrant][9] cho phép các người phát triển chạy các môi trường cục bộ gần như tương tự với các môi trường producion. Chi phí cài đặt và sử dụng những hệ thống này là thấp nếu so với những lợi ích của dev/prod parity và triển khai liên tục.
 
-Adapters to different backing services are still useful, because they make porting to new backing services relatively painless. But all deploys of the app (developer environments, staging, production) should be using the same type and version of each of the backing services.
+Các adapters cho các dịch vụ sao lưu khác nhau vẫn còn rất hữu dụng, bởi vì chúng tạo cổng tới các dịch vụ sao lưu mới tương đối nhẹ nhàng. Nhưng tất cả các triển khai của ứng dụng ( các mỗi trường developer, staging, production) nên sử dụng cùng loại và phiên bản cho mỗi dịch vụ sao lưu.
 
 #### XI. Logs
 ###### Coi các logs như các luồng sự kiện
