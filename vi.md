@@ -200,10 +200,23 @@ Các log là luồng sự kiện tổng hợp, có thứ tự thời gian đư�
 
 Trong các triển khai staging hay production, mỗi luồng tiến trình sẽ được kiểm soát bởi môi trường thực thi, đối chiếu qua lại với tất cả các luồng khác của ứng dụng, và điều hướng đến 1 hoặc chiều hơn các đích đến cuối cùng để viewing và lưu trữ dài hạn. Đích đến lưu trữ này không phải để hiển thị hay cấu hình bởi ứng dụng, và thay vào đó hoàn toàn được quản lý bởi môi trường thực thi. Bộ điều hướng log mã nguồn mở ( như Logplex và Fluentd) phù hợp với mục đích này.
 
-The event stream for an app can be routed to a file, or watched via realtime tail in a terminal. Most significantly, the stream can be sent to a log indexing and analysis system such as Splunk, or a general-purpose data warehousing system such as Hadoop/Hive. These systems allow for great power and flexibility for introspecting an app’s behavior over time, including:
-Các luồng sự kiện cho 1 ứng dụng có thể được điều hướng đến 1 file, hay được theo dõi thông qua lệnh tail thời gian thực trong 1 terminal. Quan trọng nhất, luồng có thể được gửi đến 1 chỉ mục log và hệ thống phân tích như Splunk.
 
-- Finding specific events in the past.
-- Large-scale graphing of trends (such as requests per minute).
-- Active alerting according to user-defined heuristics (such as an alert when the quantity of errors per minute exceeds a certain threshold).
-Turkish (tr) | Brazilian Portugue
+Các luồng sự kiện cho 1 ứng dụng có thể được điều hướng đến 1 file, hay được theo dõi thông qua lệnh tail thời gian thực trong 1 terminal. Quan trọng nhất, luồng có thể được gửi đến 1 chỉ mục log và hệ thống phân tích như Splunk, hoặc 1 hệ thống kho dữ liệu cho các mục đích chung như Hadoop/Hive. Những hệ thống này cho phép khả quan sát cực tốt và linh hoạt các hoạt động của ứng dụng qua thời gian, bao gồm:
+
+- Tìm kiếm các sự kiện cụ thể trong quá khứ.
+- Vẽ độ thị tỉ lệ lớn các khuynh hướng( ví dụ như là số yêu cầu mỗi phút)
+- Kích hoạt cảnh bảo dựa theo dự đoán hướng người dùng ( như là 1 cảnh báo khi số lượng lỗi mỗi phút vượt quá 1 ngưỡng cụ thể).
+
+#### XII. Các tiến trình Admin
+###### Chạy các công việc admin/quản lý như là các tiến trình chạy-1-lần
+Hệ thống tiến trình là mảng các tiến trình được sử dụng để thực hiện các công việc định kỳ của ứng dụng ( như là xử lý các yêu cầu web) như nó chạy. 1 cách riêng biệt, các nhà phát triển sẽ thường xuyên ước được thực hiện các công việc quản lý hay bảo trì 1 lần cho ứng dụng, như là:
+
+- Chạy database migrations (e.g. `manage.py migrate` in Django, `rake db:migrate` in Rails).
+- Chạy 1 console (cũng được biết như là 1 REPL shell)  để chạy code tùy ý hoặc xem xét các mô hình của ứng dụng với cơ sở dữ liệu thực tế. Hầu hết các ngôn ngữ cung cấp 1 REPL bằng cách chạy 1 biên dịch mà không cần tham số nào cả (e.g. `python` hay `perl`) hay trong vài trường hợp có 1 câu lênh tách rời (e.g. `irb` cho Ruby, `rails console` cho Rails).
+- Chạy 1 lệnh 1 lần commit lên repo của ứng dụng (e.g. `php scripts/fix_bad_records.php`).
+
+Những tiến trình admin chạy 1 lần nên được chạy trong 1 môi trường giống nhau như các tiến trình dài hạn thông thường của ứng dụng. Chúng chạy với 1 phát hành, sẽ sử dụng chung codebase và cấu hình như bất cứ tiến trình nào chạy với phát hành đó. Code admin phải tương thích với code ứng dụng để tránh các vấn đề đồng bộ hóa.
+
+Các kĩ thuật tách biệt có cùng phụ thuộc nên được sử dụng trên tất cả các loại tiến trình. Ví dụ, nếu tiến trình web Ruby sử dụng lệnh `bundle exec thin start`, sau dó 1 database migration nên sử dụng `bundle exec rake db:migrate`.Tương tự như vậy, 1 chương trình Python sử dụng Virtualenv nên sử dụng vendored `bin/python` để chạy cả Tornado webserver và bất cứ tiến trình admin `manage.py` nào.
+
+12-chuẩn đặc biệt ưa thích ngôn ngữ cung cấp REPL có hộp điều khiển, và những thứ nó dễ dàng để chạy các lệnh 1 lần. Trong triển khai cục bộ, các người phát triển gọi các tiến trình admin chạy 1 lần bằng các lệnh shell trực tiếp trong thư mục kieerm tra cả ứng dụng. Trong 1 triển khai production, các nhà phát triển có thể sử dụng ssh hay cơ chế thực thi các lệnh remote được cung cấp bởi môi trường thực thi của triển khai để chạy 1 tiến trình.
