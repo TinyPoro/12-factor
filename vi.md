@@ -123,7 +123,7 @@ Trong môi trường phát triển cục bộ, cácác nhà phát triển vào 1
 
 HTTP không phải dịch vụ duy nhất có thể được xuất bằng ràng buộc cổng. Gần đây thì bất kỳ loại phần mềm máy chủ nào đều có thể chạy thông qua 1 tiến trình ràng buộc với 1 cổng và đợi các yêu cầu đến. Các ví dụ bao gồm ejabberd ( gọi XMPP), và Redis (gọi giao thức Redis).
 
-Cũng lưu ý rằng các tiếp cận ràng-buộc-cổng có nghĩa là 1 ứng dụng có thể trở thành 1 dịch vụ nền cho 1 ứng dụng khác, bằng cách cung cấp URL đến ứng dụng nền như 1 xử lý tài nguyên trong cấu hình cho ứng dụng sử dụng.
+Cũng lưu ý rằng các tiếp cận ràng-buộc-cổng có nghĩa là 1 ứng dụng có thể trở thành 1 dịch vụ s cho 1 ứng dụng khác, bằng cách cung cấp URL đến ứng dụng nền như 1 xử lý tài nguyên trong cấu hình cho ứng dụng sử dụng.
 
 #### VIII. Xử lý đồng thời
 ###### Tăng khả năng thông qua mô hình tiến trình
