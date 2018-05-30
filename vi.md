@@ -103,7 +103,7 @@ Các kiến trúc sẽ được khởi tạo bởi người phát triển ứng 
 
 Trong trường hợp đơn giản nhất, code là 1 kịch bản độc lập, môi trường thực thi là laptop cục bộ của người phát triển với ngôn ngữ thời gian chạy đã được cài đặt, và tiến trình được thực hiện thông qua dòng lệnh ( ví dụ, `python my_script.py`). Mặt khác, 1 triển khai production của 1 ứng dụng tinh vi có thể sử nhiều nhiều loại tiến trình, khởi tạo từ 0 hoặc nhiều hơn các tiến trình chạy.
 
-Các tiến trình theo 12-chuẩn là không trạng thái và không chia sẻ bất cứ gìì cả. Bất kỳ dữ liệu nào cần dùng phải được lưu trữữ trong 1 dịch vụ nền có trạng thái, thường là 1 cơ sở dữ liệu.
+Các tiến trình theo 12-chuẩn là không trạng thái và không chia sẻ bất cứ gì cả. Bất kỳ dữ liệu nào cần dùng phải được lưu trữ trong 1 dịch vụ sao lưu có trạng thái, thường là 1 cơ sở dữ liệu.
 
 Bộ nhớ hoặc filesystem của tiến trình có thể được sử dụng như là 1 tóm tắt,  1 bộ nhớ đệm đơn-chiều. Ví dụ, tải 1 file lớn, nghiên cứu nó, và lưu các kết quả của sự nghiên cứu trong cơ sởở dữ liệu. Ứng dụng theo 12-chuẩn không bao giờ  giả định bất cứ thứ gì được cache trong bộ nhớ hay trên đĩa sẽ khả dụng trong 1 yêu cầu hay công việc trong tương lai - với nhiều tiến trình mỗi loại đang chạy, cơ hội cho 1 yêu cầu trong tương lai được phục vụ bởi 1 tiến trình khác là cao. Thậm chí ngay cả khi đang chạy duy nhất 1 tiến trình, 1 khởi động lạiại ( bắt nguồn từ triển khai code, thay đổi cấu hình hay môi trường thực thi  chuyển tiến trình sang 1 ví trí vật lí khác) thường xóa sạch tất cả trạng thái cục bộ ( bộ nhớ và filesystem).
 
