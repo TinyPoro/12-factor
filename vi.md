@@ -143,20 +143,20 @@ Các tiến trình của ứng dụng theo 12 chuẩn phải sẵn dùng, tức 
 
 Các tiến trình nên cố gắng để tối thiểu thời gian khởi động. Lý tưởng là 1 tiến trình  mất 1 vài giây từ lúc lệnh gọi được thực thi cho tới khi tiến trình bắt đầu và sẵn sàng để nhận các yêu cầu từ công việc. Thời gian khởi động ngắn cho phép các tiển trình triển khai và mở rộng nhanh hơn, và nó chắc chắn hơn, vì quản lý tiến trình có thể chuyển các tiến trình đến các máy vật lý mới khi được đảm bảo dễ dàng hơn.
 
-Các tiến trình tắt 1 cách thanh nhã khi chúng nhận được 1 tín hiệu SIGTERM từ trình quản lý tiến trình. Với 1 tiến trình web, tắt 1 cách thanh nhã đạt được bằng cách ngừng lắng nghe trên cổng dịch vụ (vì thế từ chối bất cứ yêu cầu mới nào), cho phép bất cứ yêu cầu hiện tại hoàn thành, và sau đó thoạt. Ngụ ý trong mô hình này là các yêu cầu HTTP sẽ ngắn( không nhiều hơn vài giây), hoặc trong trường hợp lâu, máy khách nên ngay lập tức thử kết nối lại khi kết nối bị mất.
+Các tiến trình tắt 1 cách thanh nhã khi chúng nhận được 1 tín hiệu SIGTERM từ trình quản lý tiến trình. Với 1 tiến trình web, tắt 1 cách thanh nhã đạt được bằng cách ngừng lắng nghe trên cổng dịch vụ (vì thế từ chối bất cứ yêu cầu mới nào), cho phép bất cứ yêu cầu hiện tại nào hoàn thành, và sau đó thoạt. Ngụ ý trong mô hình này là các yêu cầu HTTP sẽ ngắn( không nhiều hơn vài giây), hoặc trong trường hợp lâu, client nên ngay lập tức thử kết nối lại khi kết nối bị mất.
 
 Với 1 tiến trình worker, tắt 1 cách thanh ngã đạt được bằng cách đưa công việc hiện tại về hàng chờ việc. Ví dụ, trên RabbitMQ worker có thể gửi 1 `NACK`; trên Beanstalkd, công việc được đưa về hàng chờ tự động mỗi khi worker ngắt kết nối. Các hệ thống lock-based như Delayed Job cần phải chắc triển khai khóa của chúng trên các bản ghi công việc. Ngụ ý trong mô hình ngày là tất cả các công việc là lặp lại, thứ thường có thể đạt được bằng cách gói các kết quả trong 1 giao dịch, hoặc khiến hoạt động không thay đổi giá trị.
 
-Các tiến trình cũng nên mạnh mẽ trước những biến cố bất thình lình, trong trường hợp bị hỏng ở phần cứng phía dưới. Trong khi đây là điều thường ít xảy ra hơn  so với tắt 1 cách thanh nhã với `SIGTERM`, nó vẫn có thể xảy ra. 1 lời khuyên là sử dụng  nền hàng chờ chắc chắn, như là Beanstalkd, nó sẽ đưa các công việc về hàng chờ khi các máy khách ngắt kết nối hoặc quá hạn. Cung như vậy, 1 ứng dụng theo 12 chuẩn được thiết kế để xử lý những kết thúc không ngờ, không thanh nhã. Các thiết kế chỉ-hỏng đưa khái niệm này đến kết luận logic của nó.
+Các tiến trình cũng nên mạnh mẽ trước những biến cố bất thình lình, trong trường hợp bị hỏng ở phần cứng phía dưới. Trong khi đây là điều thường ít xảy ra hơn  so với tắt 1 cách thanh nhã với `SIGTERM`, nó vẫn có thể xảy ra. 1 lời khuyên là sử dụng  nền hàng chờ chắc chắn, như là Beanstalkd, nó sẽ đưa các công việc về hàng chờ khi các client ngắt kết nối hoặc quá hạn. Cung như vậy, 1 ứng dụng theo 12 chuẩn được thiết kế để xử lý những kết thúc không ngờ, không thanh nhã. Các thiết kế chỉ-hỏng đưa khái niệm này đến kết luận logic của nó.
 
 
 #### X. Dev/prod parity (bình đẳng dev/prod)
 ###### Giữ cho giai đoạn development, staging, và production giống nhau nhất có thể
 
-Trước đây, có 1 khoảng trống đáng kể giữa development ( 1 người phát triển tạo các chỉnh sửa trực tiếp tới các triển khai cục bộ của ứng dụng) vàà production(1 triển khai đang chạy của ứng dụng tiếp cận bởi các người dùng cuối). Những khoảng trống này biểu lộ trong 3 điểm:
+Trước đây, có 1 khoảng trống đáng kể giữa development ( 1 người phát triển tạo các chỉnh sửa trực tiếp tới các triển khai cục bộ của ứng dụng) và production(1 triển khai đang chạy của ứng dụng tiếp cận bởi các người dùng cuối). Những khoảng trống này biểu lộ trong 3 điểm:
 
-- Khoảng trống thời gian: 1 người phát triển có thể làm việc trên code mất vài ngàyày, vài tuần, hay thâm chí vài tháng trước khi đẩy lên production.
-- Khoảng cách về nhân sự: Các người phát triển viết code, các kĩ sư óp triển khai nó.
+- Khoảng trống thời gian: 1 người phát triển có thể làm việc trên code mất vài ngày, vài tuần, hay thâm chí vài tháng trước khi đẩy lên production.
+- Khoảng cách về nhân sự: Các người phát triển viết code, các kĩ sư ops triển khai nó.
 - Khoảng cách về công cụ: các người phát triển có thể sử dụng 1 stack như Ngĩn, SQLite, và OS X, trong khi triển khai production sử dụng Apache, MySQL, và Linuxx.
 
 Ứng dụng theo 12 chuẩn được thiết kế để triển khai liên tục bằng cách giữ các khoảng cách giữa development và production nhỏ. Nhìn vào 3 cái khoảng trống được mô tả bên trên:
@@ -173,7 +173,7 @@ Tổng kết trong bảng dưới đây:
 | Tác giả code và người triển khai code |  Những người khác nhau |  Cùng người |  
 | Các môi trường Dev và production |  Khác ngau |  Giống nhau hết cỡ có thể | 
 
-[Các dịch vụ sao lưu][3], như là cơ sở dữ liệu của ứng dụng, hệ thống hàng đợi, hoặc bộ nhớ đệm, là thứ mà bình đằng dev/prod rất quan trọng. Nhiều ngôn ngữ cho phép các thư viện đơn giản hóa truy cập đến các dịch vụ sao lưu, bao gồm _adapters_ đến các loại khác nhau của dịch vụ. 1 số ví dụ được cho trong bảng dưới đây.
+[Các dịch vụ sao lưu](3), như là cơ sở dữ liệu của ứng dụng, hệ thống hàng đợi, hoặc bộ nhớ đệm, là thứ mà bình đằng dev/prod rất quan trọng. Nhiều ngôn ngữ cho phép các thư viện đơn giản hóa truy cập đến các dịch vụ sao lưu, bao gồm _adapters_ đến các loại khác nhau của dịch vụ. 1 số ví dụ được cho trong bảng dưới đây.
 
 
 | Loại |  Ngôn ngữ |  Thư viện |  Adapters |  
@@ -182,11 +182,11 @@ Tổng kết trong bảng dưới đây:
 | Queue |  Python/Django |  Celery |  RabbitMQ, Beanstalkd, Redis |  
 | Cache |  Ruby/Rails |  ActiveSupport::Cache |  Memory, filesystem, Memcached | 
 
-Các nhà phát triển đôi khi kêu gọi mạnh mẽ trong việc xử dụng các dịch vụ sao lưu nhẹ trong các môi trường cục bộ của họ, trong khi các dịch vụ sao lưu mạnh mẽ hơn sẽ đượcđược sử dụng trong production. Ví dụ, sử dụng SQLite cục bộ và PostgreSQL trong production; hay bộ nhớ tiến trình cục bộ cho việc caching trong development và Memcaches trong production.
+Các nhà phát triển đôi khi kêu gọi mạnh mẽ trong việc xử dụng các dịch vụ sao lưu nhẹ trong các môi trường cục bộ của họ, trong khi các dịch vụ sao lưu mạnh mẽ hơn sẽ được sử dụng trong production. Ví dụ, sử dụng SQLite cục bộ và PostgreSQL trong production; hay bộ nhớ tiến trình cục bộ cho việc caching trong development và Memcaches trong production.
 
-**Nhà phát triển theo 12-chuẩn luôn chối bỏ những cám dỗ sử dụng các dịch vụ sao lưu khác nhau giữa development và production**, thậm chí khi các adaper về mặt lý thuyết tách biệt với bất kỳ sự khác nhau nào trong các dịch vụ sao lưu. Các sự khác nhau giữa các dịch vụ sao lưu có nghĩa là có 1 sự không tương thích xuất hiện, khiến code chạy là qua các bài test trong development hoặc staging có thể thất bại ở production. Những loại lỗi này gây ra những khó khăn làm cản trở triển khai liên tục. Ảnh hưởng của khó khăn này và  những cản trở  tiếp theo đếntriển khai liên tục là thực sự lớn khi xem xét tổng hợp trên vòng đời của 1 ứng dụng.
+**Nhà phát triển theo 12-chuẩn luôn chối bỏ những cám dỗ sử dụng các dịch vụ sao lưu khác nhau giữa development và production**, thậm chí khi các adaper về mặt lý thuyết tách biệt với bất kỳ sự khác nhau nào trong các dịch vụ sao lưu. Các sự khác nhau giữa các dịch vụ sao lưu có nghĩa là có 1 sự không tương thích xuất hiện, khiến code chạy là qua các bài test trong development hoặc staging có thể thất bại ở production. Những loại lỗi này gây ra những khó khăn làm cản trở triển khai liên tục. Ảnh hưởng của khó khăn này và  những cản trở  tiếp theo đến triển khai liên tục là thực sự lớn khi xem xét tổng hợp trên vòng đời của 1 ứng dụng.
 
-Các dịch vụ cục bộ nhẹ ngày này kém thuyết phục hơn trước. Các dịch vụ sao lưu hiện đại như Memcaches, PostgreSQL, và RabbitMQ không khó để cài đặt và chạy nhờ vào các hệ thống quản lý gọi hiện đại, như là [Homebrew][4] và [apt-get][5]. Ngoài ra, các công cụ cung cấp khai báo như [Chef][6] và [Puppet][7] đã được kết hợp với các môi trường máy ảo nhẹ như[Docker][8] và [Vagrant][9] cho phép các người phát triển chạy các môi trường cục bộ gần như tương tự với các môi trường producion. Chi phí cài đặt và sử dụng những hệ thống này là thấp nếu so với những lợi ích của dev/prod parity và triển khai liên tục.
+Các dịch vụ cục bộ nhẹ ngày này kém thuyết phục hơn trước. Các dịch vụ sao lưu hiện đại như Memcaches, PostgreSQL, và RabbitMQ không khó để cài đặt và chạy nhờ vào các hệ thống quản lý gọi hiện đại, như là [Homebrew](4) và [apt-get](5). Ngoài ra, các công cụ cung cấp khai báo như [Chef](6) và [Puppet](7) đã được kết hợp với các môi trường máy ảo nhẹ như[Docker](8) và [Vagrant](9) cho phép các người phát triển chạy các môi trường cục bộ gần như tương tự với các môi trường producion. Chi phí cài đặt và sử dụng những hệ thống này là thấp nếu so với những lợi ích của dev/prod parity và triển khai liên tục.
 
 Các adapters cho các dịch vụ sao lưu khác nhau vẫn còn rất hữu dụng, bởi vì chúng tạo cổng tới các dịch vụ sao lưu mới tương đối nhẹ nhàng. Nhưng tất cả các triển khai của ứng dụng ( các mỗi trường developer, staging, production) nên sử dụng cùng loại và phiên bản cho mỗi dịch vụ sao lưu.
 
@@ -208,8 +208,8 @@ Các luồng sự kiện cho 1 ứng dụng có thể được điều hướng 
 - Kích hoạt cảnh bảo dựa theo dự đoán hướng người dùng ( như là 1 cảnh báo khi số lượng lỗi mỗi phút vượt quá 1 ngưỡng cụ thể).
 
 #### XII. Các tiến trình Admin
-###### Chạy các công việc admin/quản lý như là các tiến trình chạy-1-lần
-Hệ thống tiến trình là mảng các tiến trình được sử dụng để thực hiện các công việc định kỳ của ứng dụng ( như là xử lý các yêu cầu web) như nó chạy. 1 cách riêng biệt, các nhà phát triển sẽ thường xuyên ước được thực hiện các công việc quản lý hay bảo trì 1 lần cho ứng dụng, như là:
+###### Chạy các công việc admin/quản lý như là các tiến trình chạy 1-lần
+Hệ thống tiến trình là mảng các tiến trình được sử dụng để thực hiện các công việc định kỳ của ứng dụng ( như là xử lý các yêu cầu web) như nó chạy. 1 cách riêng biệt, các nhà phát triển sẽ thường mong muốn thực hiện các công việc quản lý hay bảo trì 1 lần cho ứng dụng, như là:
 
 - Chạy database migrations (e.g. `manage.py migrate` in Django, `rake db:migrate` in Rails).
 - Chạy 1 console (cũng được biết như là 1 REPL shell)  để chạy code tùy ý hoặc xem xét các mô hình của ứng dụng với cơ sở dữ liệu thực tế. Hầu hết các ngôn ngữ cung cấp 1 REPL bằng cách chạy 1 biên dịch mà không cần tham số nào cả (e.g. `python` hay `perl`) hay trong vài trường hợp có 1 câu lênh tách rời (e.g. `irb` cho Ruby, `rails console` cho Rails).
